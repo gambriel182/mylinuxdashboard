@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Linux Rice Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <!-- Meu wallpaper -->
+    <div class="card setup-card">
+        <div class="card-header">
+            <h2><span class="icon">🖼️</span> Meu wallpaper</h2>
+        </div>
+        <div class="card-body">
+            <div class="setup-image">
+                <img src="/wall.jpg" alt="Meu Linux" loading="lazy">
+                <div class="image-overlay">
+                    <span class="overlay-text">Meu Rice Linux </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notas Rápidas -->
+    <div class="card notes-card">
+        <div class="card-header">
+            <h2><span class="icon">📝</span> Notas Rápidas</h2>
+            <a href="{{ url_for('notes') }}" class="view-all">Ver Todas →</a>
+        </div>
+        <div class="card-body">
+            {% if notes %}
+                <div class="notes-list">
+                    {% for note in notes %}
+                    <div class="note-item {% if note.completed %}completed{% endif %}">
+                        <div class="note-title">
+                            {% if note.completed %}<s>{{ note.title }}</s>{% else %}{{ note.title }}{% endif %}
+                        </div>
+                        <div class="note-preview">
+                            {{ note.content[:100] }}{% if note.content|length > 100 %}...{% endif %}
+                        </div>
+                        <div class="note-meta">
+                            <span class="note-date">{{ note.created_at.strftime('%d/%m %H:%M') }}</span>
+                            {% if note.completed %}
+                                <span class="completed-badge">✓ Concluída</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <p>Sem notas ainda. <a href="{{ url_for('notes') }}">Criar primeira nota</a></p>
+                </div>
+            {% endif %}
+            <div class="card-actions">
+                <a href="{{ url_for('notes') }}" class="btn btn-primary">+ Nova Nota</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Linux Rice News -->
+    <div class="card news-card">
+        <div class="card-header">
+            <h2><span class="icon">📰</span> Linux Rice News</h2>
+            <button class="refresh-btn" onclick="location.reload()">🔄</button>
+        </div>
+        <div class="card-body">
+            {% if news %}
+                <div class="news-list">
+                    {% for item in news %}
+                    <div class="news-item">
+                        <div class="news-source">{{ item.source }}</div>
+                        <h3 class="news-title">
+                            <a href="{{ item.link }}" target="_blank" rel="noopener noreferrer">
+                                {{ item.title }}
+                            </a>
+                        </h3>
+                        <p class="news-summary">{{ item.summary }}</p>
+                        <div class="news-meta">
+                            <span class="news-date">{{ item.published }}</span>
+                            <a href="{{ item.link }}" target="_blank" class="read-more">Ler Mais →</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <p>A carregar notícias...</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Links Rápidos -->
+    <div class="card links-card">
+        <div class="card-header">
+            <h2><span class="icon">🔗</span> Links Rápidos</h2>
+            <a href="{{ url_for('links') }}" class="view-all">Gerir Links →</a>
+        </div>
+        <div class="card-body">
+            {% if links %}
+                <div class="links-grid">
+                    {% for link in links %}
+                    <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="link-item">
+                        <div class="link-favicon">
+                            <img src="{{ link.favicon }}" alt="Favicon" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="fallback-icon">🔗</div>
+                        </div>
+                        <div class="link-info">
+                            <div class="link-category">{{ link.category }}</div>
+                            <div class="link-title">{{ link.title }}</div>
+                            {% if link.description %}
+                            <div class="link-description">{{ link.description }}</div>
+                            {% endif %}
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <p>Sem links de Fast Access. <a href="{{ url_for('links') }}">Adicionar links e marcar "Fast Access"</a></p>
+                </div>
+            {% endif %}
+            <div class="card-actions">
+                <a href="{{ url_for('links') }}" class="btn btn-secondary">+ Adicionar Link</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status do Sistema -->
+    <div class="card status-card">
+        <div class="card-header">
+            <h2><span class="icon">📊</span> Status do Sistema</h2>
+        </div>
+        <div class="card-body">
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">Database:</span>
+                    <span class="status-value">🟢 SQLite Online</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">RSS Feeds:</span>
+                    <span class="status-value">🟢 {{ news|length }} Active</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Notas:</span>
+                    <span class="status-value">📝 {{ notes|length }} Total</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Links:</span>
+                    <span class="status-value">🔗 {{ links|length }} Saved</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Uptime:</span>
+                    <span class="status-value" id="uptime">Calculando...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Session:</span>
+                    <span class="status-value">👤 {{ session.username }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Uptime counter
+    function updateUptime() {
+        const startTime = Date.now();
+        setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const seconds = Math.floor(elapsed / 1000) % 60;
+            const minutes = Math.floor(elapsed / 60000) % 60;
+            const hours = Math.floor(elapsed / 3600000);
+            
+            const uptimeStr = `${hours}h ${minutes}m ${seconds}s`;
+            const uptimeElement = document.getElementById('uptime');
+            if (uptimeElement) {
+                uptimeElement.textContent = uptimeStr;
+            }
+        }, 1000);
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        updateUptime();
+    });
+</script>
+{% endblock %}

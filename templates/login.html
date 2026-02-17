@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Linux Rice Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐧</text></svg>">
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="terminal">
+            <div class="terminal-header">
+                <div class="terminal-buttons">
+                    <div class="button close"></div>
+                    <div class="button minimize"></div>
+                    <div class="button maximize"></div>
+                </div>
+                <div class="terminal-title">
+                    <span>🐧 gambriel182@linuxricedesktop:~$ login</span>
+                </div>
+            </div>
+            
+            <div class="terminal-body">
+                <div class="ascii-art">
+                    <pre>
+    ╔═══════════════════════════════════════╗
+    ║     🐧 LINUX RICE DASHBOARD 🐧        ║
+    ║                                       ║
+     ║       gambriel182's Dashboard         ║ 
+    ╚═══════════════════════════════════════╝
+                    </pre>
+                </div>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages">
+                            {% for category, message in messages %}
+                                <div class="flash-message flash-{{ category }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="POST" class="login-form">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required 
+                               placeholder="Enter your username" autocomplete="username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required 
+                               placeholder="Enter your password" autocomplete="current-password">
+                    </div>
+                    
+                    <button type="submit" class="login-btn">
+                        <span class="btn-text">🔓 Authenticate</span>
+                        <span class="btn-cursor">_</span>
+                    </button>
+                </form>
+    
+    <script>
+        // Terminal typing effect
+        function typeTerminal() {
+            const title = document.querySelector('.terminal-title span');
+            if (title) {
+                const text = title.textContent;
+                title.textContent = '';
+                let i = 0;
+                const type = () => {
+                    if (i < text.length) {
+                        title.textContent += text.charAt(i);
+                        i++;
+                        setTimeout(type, 50);
+                    }
+                };
+                type();
+            }
+        }
+        
+        // Button cursor animation
+        function animateCursor() {
+            const cursor = document.querySelector('.btn-cursor');
+            if (cursor) {
+                setInterval(() => {
+                    cursor.style.opacity = cursor.style.opacity === '0' ? '1' : '0';
+                }, 500);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            typeTerminal();
+            animateCursor();
+        });
+    </script>
+</body>
+</html>

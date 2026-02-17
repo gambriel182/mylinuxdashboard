@@ -1,0 +1,570 @@
+{% set category_icons = {
+    'general': '📁',
+    'development': '💻',
+    'documentation': '📚',
+    'reddit': '🤖',
+    'news': '📰',
+    'tools': '🔧',
+    'inspiration': '✨'
+} %}
+
+{% extends "base.html" %}
+
+{% block title %}Links Rápidos - Linux Rice Dashboard{% endblock %}
+
+{% block content %}
+<div class="links-container">
+    <div class="page-header">
+        <h1><span class="icon">🔗</span> Links Rápidos</h1>
+        <button class="btn btn-primary" onclick="showAddForm()">+ Adicionar Link</button>
+    </div>
+
+    <!-- Add Link Form (Hidden by default) -->
+    <div class="add-link-form" id="addLinkForm" style="display: none;">
+        <div class="card">
+            <div class="card-header">
+                <h3>Adicionar Novo Link</h3>
+                <button class="close-btn" onclick="hideAddForm()">×</button>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_link') }}">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="title">Título:</label>
+                            <input type="text" id="title" name="title" required placeholder="Nome do site/link">
+                        </div>
+                        <div class="form-group">
+                            <label for="category">Categoria:</label>
+                            <select id="category" name="category">
+                                <option value="general">General</option>
+                                <option value="development">Development</option>
+                                <option value="documentation">Documentation</option>
+                                <option value="reddit">Reddit</option>
+                                <option value="news">News</option>
+                                <option value="tools">Tools</option>
+                                <option value="inspiration">Inspiration</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="url">URL:</label>
+                        <input type="url" id="url" name="url" required placeholder="https://example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Descrição (opcional):</label>
+                        <input type="text" id="description" name="description" placeholder="Breve descrição do link">
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="fast_access">
+                            <span class="checkmark"></span>
+                            Fast Access (mostrar no dashboard)
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Salvar Link</button>
+                        <button type="button" class="btn btn-secondary" onclick="hideAddForm()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Links by Category -->
+    <div class="links-by-category">
+        {% set categories = links|map(attribute='category')|unique|list %}
+        
+        {% for category in categories %}
+        <div class="category-section">
+            <div class="category-header">
+                <h2><span class="category-icon">{{ category_icons[category] if category_icons[category] else '📁' }}</span> {{ category|title }}</h2>
+                <span class="link-count">{{ links|selectattr('category', 'equalto', category)|list|length }} links</span>
+            </div>
+            
+            <div class="links-grid">
+                {% for link in links|selectattr('category', 'equalto', category) %}
+                <div class="link-card">
+                    <div class="link-header">
+                        <div class="link-icon">
+                            {% if 'github' in link.url %}
+                                🐙
+                            {% elif 'reddit' in link.url %}
+                                🤖
+                            {% elif 'wiki' in link.url %}
+                                📚
+                            {% elif 'news' in link.url %}
+                                📰
+                            {% else %}
+                                🔗
+                            {% endif %}
+                        </div>
+                        <h3 class="link-title">
+                            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">
+                                {{ link.title }}
+                                {% if link.fast_access %}
+                                <span class="fast-access-badge">⚡ Fast Access</span>
+                                {% endif %}
+                            </a>
+                        </h3>
+                        <div class="link-actions">
+                            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="action-btn visit-btn" title="Visitar">🔗</a>
+                            <a href="{{ url_for('delete_link', link_id=link.id) }}" class="action-btn delete-btn" title="Apagar" onclick="return confirm('Tem certeza que deseja apagar este link?')">🗑️</a>
+                        </div>
+                    </div>
+                    
+                    {% if link.description %}
+                    <div class="link-description">{{ link.description }}</div>
+                    {% endif %}
+                    
+                    <div class="link-footer">
+                        <div class="link-url">
+                            <span class="url-text">{{ link.url }}</span>
+                            <button class="copy-btn" onclick="copyToClipboard('{{ link.url }}')" title="Copiar URL">📋</button>
+                        </div>
+                        <div class="link-date">
+                            📅 {{ link.created_at.strftime('%d/%m/%Y') }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Empty State -->
+    {% if not links %}
+    <div class="empty-state">
+        <div class="empty-icon">🔗</div>
+        <h3>Sem links ainda</h3>
+        <p>Comece por adicionar os seus sites favoritos para acesso rápido.</p>
+        <button class="btn btn-primary" onclick="showAddForm()">+ Adicionar Primeiro Link</button>
+    </div>
+    {% endif %}
+
+    <!-- Statistics -->
+    {% if links %}
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-number">{{ links|length }}</div>
+            <div class="stat-label">Total Links</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ categories|length }}</div>
+            <div class="stat-label">Categorias</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ links|selectattr('category', 'equalto', 'development')|list|length }}</div>
+            <div class="stat-label">Development</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ links|selectattr('category', 'equalto', 'reddit')|list|length }}</div>
+            <div class="stat-label">Reddit</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Category icons mapping
+    const categoryIcons = {
+        general: '📁',
+        development: '💻',
+        documentation: '📚',
+        reddit: '🤖',
+        news: '📰',
+        tools: '🔧',
+        inspiration: '✨'
+    };
+
+    function showAddForm() {
+        const form = document.getElementById('addLinkForm');
+        form.style.display = 'block';
+        document.getElementById('title').focus();
+    }
+
+    function hideAddForm() {
+        const form = document.getElementById('addLinkForm');
+        form.style.display = 'none';
+        // Clear form
+        document.getElementById('title').value = '';
+        document.getElementById('url').value = '';
+        document.getElementById('description').value = '';
+        document.getElementById('category').value = 'general';
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            // Show success feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✓';
+            btn.style.color = '#00ff41';
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.color = '';
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        });
+    }
+
+    // URL validation
+    function validateURL(url) {
+        try {
+            new URL(url);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    // Form validation
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('.add-link-form form');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                const urlInput = document.getElementById('url');
+                if (!validateURL(urlInput.value)) {
+                    e.preventDefault();
+                    alert('Please enter a valid URL (e.g., https://example.com)');
+                    urlInput.focus();
+                }
+            });
+        }
+
+        // Auto-detect category from URL
+        const urlInput = document.getElementById('url');
+        const categorySelect = document.getElementById('category');
+        
+        if (urlInput && categorySelect) {
+            urlInput.addEventListener('blur', () => {
+                const url = urlInput.value.toLowerCase();
+                const currentCategory = categorySelect.value;
+                
+                // Only auto-set if category is still the default
+                if (currentCategory === 'general') {
+                    if (url.includes('github.com') || url.includes('gitlab.com')) {
+                        categorySelect.value = 'development';
+                    } else if (url.includes('reddit.com')) {
+                        categorySelect.value = 'reddit';
+                    } else if (url.includes('wiki') || url.includes('docs') || url.includes('documentation')) {
+                        categorySelect.value = 'documentation';
+                    } else if (url.includes('news') || url.includes('blog')) {
+                        categorySelect.value = 'news';
+                    } else if (url.includes('tool') || url.includes('app')) {
+                        categorySelect.value = 'tools';
+                    }
+                }
+            });
+        }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + L for new link
+        if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+            e.preventDefault();
+            showAddForm();
+        }
+        // Escape to close form
+        if (e.key === 'Escape') {
+            hideAddForm();
+        }
+    });
+
+    // Search functionality (optional enhancement)
+    function addSearchFunctionality() {
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = 'Search links...';
+        searchInput.className = 'search-input';
+        
+        const header = document.querySelector('.page-header');
+        header.appendChild(searchInput);
+        
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const linkCards = document.querySelectorAll('.link-card');
+            
+            linkCards.forEach(card => {
+                const title = card.querySelector('.link-title').textContent.toLowerCase();
+                const description = card.querySelector('.link-description');
+                const descText = description ? description.textContent.toLowerCase() : '';
+                const url = card.querySelector('.url-text').textContent.toLowerCase();
+                
+                if (title.includes(query) || descText.includes(query) || url.includes(query)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Initialize search if there are many links
+    {% if links|length > 10 %}
+    document.addEventListener('DOMContentLoaded', addSearchFunctionality);
+    {% endif %}
+</script>
+
+<style>
+.links-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.page-header h1 {
+    color: #00ff41;
+    font-size: 2rem;
+    margin: 0;
+}
+
+.add-link-form {
+    margin-bottom: 2rem;
+}
+
+.links-by-category {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.category-section {
+    background: rgba(0, 255, 65, 0.02);
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid rgba(0, 255, 65, 0.1);
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+}
+
+.category-header h2 {
+    color: #00ff41;
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.category-icon {
+    margin-right: 0.5rem;
+}
+
+.link-count {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.link-card {
+    background: rgba(0, 255, 65, 0.05);
+    border: 1px solid #00ff41;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.link-card:hover {
+    background: rgba(0, 255, 65, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 255, 65, 0.2);
+}
+
+.link-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.link-title {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.link-title a {
+    color: #00ff41;
+    text-decoration: none;
+    word-break: break-word;
+}
+
+.link-title a:hover {
+    text-decoration: underline;
+}
+
+.link-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    padding: 0.25rem;
+}
+
+.action-btn:hover {
+    opacity: 1;
+}
+
+.delete-btn:hover {
+    color: #ff4444;
+}
+
+.link-description {
+    color: #ccc;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+
+.link-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.link-url {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.url-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.copy-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+}
+
+.copy-btn:hover {
+    opacity: 1;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #888;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.stat-card {
+    background: rgba(0, 255, 65, 0.05);
+    border: 1px solid #00ff41;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #00ff41;
+}
+
+.stat-label {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.search-input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #00ff41;
+    border-radius: 4px;
+    padding: 0.5rem;
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    margin-left: 1rem;
+    min-width: 200px;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .links-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .link-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+    
+    .search-input {
+        margin-left: 0;
+        margin-top: 1rem;
+        width: 100%;
+    }
+}
+</style>
+
+{% endblock %}

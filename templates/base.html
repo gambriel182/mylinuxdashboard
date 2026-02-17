@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Linux Rice Dashboard{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐧</text></svg>">
+</head>
+<body>
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <div class="button close"></div>
+                <div class="button minimize"></div>
+                <div class="button maximize"></div>
+            </div>
+            <div class="terminal-title">
+                <span>🐧 root@linuxricedashboard:~$</span>
+            </div>
+        </div>
+        
+        <nav class="nav-bar">
+            <div class="nav-content">
+                <div class="nav-left">
+                    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <span class="nav-icon">🏠</span> Dashboard
+                    </a>
+                    <a href="{{ url_for('notes') }}" class="nav-link {% if request.endpoint == 'notes' %}active{% endif %}">
+                        <span class="nav-icon">📝</span> Notas
+                    </a>
+                    <a href="{{ url_for('links') }}" class="nav-link {% if request.endpoint == 'links' %}active{% endif %}">
+                        <span class="nav-icon">🔗</span> Links
+                    </a>
+                </div>
+                <div class="nav-right">
+                    <span class="user-info">👤 {{ session.username }}</span>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+                </div>
+            </div>
+        </nav>
+        
+        <main class="main-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </main>
+        
+        <div class="terminal-footer">
+            <div class="status-bar">
+                <span class="status-item">🟢 Online</span>
+                <span class="status-item">📊 {{ moment().format('HH:mm:ss') if moment else 'System Time' }}</span>
+                <span class="status-item">💾 SQLite</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Terminal typing effect
+        function typeTerminal() {
+            const title = document.querySelector('.terminal-title span');
+            if (title) {
+                const text = title.textContent;
+                title.textContent = '';
+                let i = 0;
+                const type = () => {
+                    if (i < text.length) {
+                        title.textContent += text.charAt(i);
+                        i++;
+                        setTimeout(type, 50);
+                    }
+                };
+                type();
+            }
+        }
+        
+        // Auto-hide flash messages
+        setTimeout(() => {
+            const messages = document.querySelectorAll('.flash-message');
+            messages.forEach(msg => {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 300);
+            });
+        }, 5000);
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', typeTerminal);
+    </script>
+</body>
+</html>
