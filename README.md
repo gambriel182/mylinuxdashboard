@@ -10,7 +10,7 @@ Um painel de administração pessoal com estética terminal/tech para organizar 
 - Utilizador admin padrão: `admin` / `admin123`
 
 ### 📊 Dashboard Principal
-- **Setup do Dia**: Wallpaper inspirador de setups Linux
+- **Teu Setup**: basta alterar o wall.jpg pelo o do teu setup :)
 - **Notas Rápidas**: Sistema de to-do list com gestão completa
 - **Linux Rice News**: RSS feeds de sites de customização Linux
 - **Links Rápidos**: Favoritos organizados por categorias
@@ -28,15 +28,6 @@ Um painel de administração pessoal com estética terminal/tech para organizar 
 - Copiar URLs com um clique
 - Detecção automática de categorias
 - Busca integrada (para >10 links)
-
-### 📰 Módulo de Notícias
-- RSS feeds de:
-  - r/unixporn
-  - Arch Linux News
-  - Linux Mint Blog
-  - OMG! Ubuntu
-  - Phoronix
-- Atualização automática a cada 5 minutos
 
 ## 🛠️ Tecnologias
 
